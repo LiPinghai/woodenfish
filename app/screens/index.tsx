@@ -3,11 +3,28 @@ import { Audio } from 'expo-av';
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../context/SettingsContext';
 
-export default function TabOneScreen() {
+export default function MainScreen() {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isAutoplaying, setIsAutoplaying] = useState(false);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const { speed, volume, theme, autoPlay } = useSettings();
+
+  // Add preload effect
+  useEffect(() => {
+    const loadSound = async () => {
+      const { sound } = await Audio.Sound.createAsync(
+        require('../../assets/sounds/woodenfish1.mp3'),
+        { volume: volume }
+      );
+      setSound(sound);
+    };
+    loadSound();
+
+    // Cleanup when component unmounts
+    return () => {
+      sound?.unloadAsync();
+    };
+  }, []); // Empty dependency array means this runs once on mount
 
   const stopAutoplay = async () => {
     if (sound) {
@@ -21,16 +38,9 @@ export default function TabOneScreen() {
   };
 
   const playSingleSound = async () => {
-    if (!sound) {
-      const { sound } = await Audio.Sound.createAsync(
-        require('../../assets/sounds/woodenfish1.mp3'),
-        {
-          volume: volume,
-        }
-      );
-      setSound(sound);
+    if (sound) {
+      await sound.replayAsync();
     }
-    await sound?.playAsync();
   };
 
   const startAutoplay = async () => {
@@ -39,17 +49,8 @@ export default function TabOneScreen() {
       return;
     }
 
-    if (!sound) {
-      const { sound } = await Audio.Sound.createAsync(
-        require('../../assets/sounds/woodenfish1.mp3'),
-        {
-          volume: volume,
-        }
-      );
-      setSound(sound);
-    }
     setIsAutoplaying(true);
-    await sound?.playAsync();
+    await sound?.replayAsync();
     
     // Set up the interval for the next sound
     const interval = speed * 1000;
