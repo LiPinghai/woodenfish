@@ -1,5 +1,4 @@
-import { Text, View } from '@/components/Themed';
-import { Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Audio } from 'expo-av';
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../context/SettingsContext';
@@ -68,6 +67,13 @@ export default function TabOneScreen() {
     }
   };
 
+  // Update sound volume when volume setting changes
+  useEffect(() => {
+    if (sound) {
+      sound.setVolumeAsync(volume);
+    }
+  }, [volume]);
+
   // Stop autoplay when autoplay setting is turned off
   useEffect(() => {
     if (!autoPlay && isAutoplaying) {
@@ -86,9 +92,6 @@ export default function TabOneScreen() {
 
   return (
     <View style={[styles.container, theme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
-      <Text style={[styles.title, theme === 'dark' ? styles.darkText : styles.lightText]}>
-        Wooden Fish
-      </Text>
       <TouchableOpacity onPress={handlePress}>
         <Image 
           source={theme === 'dark' 

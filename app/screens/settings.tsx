@@ -2,9 +2,32 @@ import React from 'react';
 import { View, Text, Switch, StyleSheet, Pressable } from 'react-native';
 import { useSettings } from '../context/SettingsContext';
 import Slider from '@react-native-community/slider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SettingScreen() {
   const { autoPlay, setAutoPlay, speed, setSpeed, volume, setVolume, theme, setTheme } = useSettings();
+
+  // Add handlers to save settings when they change
+  const handleAutoPlayChange = async (value: boolean) => {
+    setAutoPlay(value);
+    await AsyncStorage.setItem('settings_autoPlay', JSON.stringify(value));
+  };
+
+  const handleSpeedChange = async (value: number) => {
+    setSpeed(value);
+    await AsyncStorage.setItem('settings_speed', JSON.stringify(value));
+  };
+
+  const handleVolumeChange = async (value: number) => {
+    setVolume(value);
+    await AsyncStorage.setItem('settings_volume', JSON.stringify(value));
+  };
+
+  const handleThemeChange = async (value: boolean) => {
+    const newTheme = value ? 'dark' : 'light';
+    setTheme(newTheme);
+    await AsyncStorage.setItem('settings_theme', newTheme);
+  };
 
   return (
     <View style={[styles.container, theme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
@@ -16,7 +39,7 @@ export default function SettingScreen() {
         <Text style={[styles.settingLabel, theme === 'dark' ? styles.darkText : styles.lightText]}>
           Auto Play Sound
         </Text>
-        <Switch value={autoPlay} onValueChange={setAutoPlay} />
+        <Switch value={autoPlay} onValueChange={handleAutoPlayChange} />
       </View>
 
       <View style={[styles.settingItem, theme === 'dark' ? styles.darkBorder : styles.lightBorder]}>
@@ -25,11 +48,11 @@ export default function SettingScreen() {
         </Text>
         <Slider
           style={styles.slider}
-          minimumValue={0.2}
-          maximumValue={2.0}
+          minimumValue={0.1}
+          maximumValue={3.0}
           step={0.1}
           value={speed}
-          onValueChange={setSpeed}
+          onValueChange={handleSpeedChange}
           minimumTrackTintColor={theme === 'dark' ? '#FFFFFF' : '#000000'}
           maximumTrackTintColor={theme === 'dark' ? '#666666' : '#CCCCCC'}
           thumbTintColor={theme === 'dark' ? '#FFFFFF' : '#000000'}
@@ -44,9 +67,9 @@ export default function SettingScreen() {
           style={styles.slider}
           minimumValue={0}
           maximumValue={1}
-          step={0.1}
+          step={0.05}
           value={volume}
-          onValueChange={setVolume}
+          onValueChange={handleVolumeChange}
           minimumTrackTintColor={theme === 'dark' ? '#FFFFFF' : '#000000'}
           maximumTrackTintColor={theme === 'dark' ? '#666666' : '#CCCCCC'}
           thumbTintColor={theme === 'dark' ? '#FFFFFF' : '#000000'}
@@ -55,15 +78,12 @@ export default function SettingScreen() {
 
       <View style={[styles.settingItem, theme === 'dark' ? styles.darkBorder : styles.lightBorder]}>
         <Text style={[styles.settingLabel, theme === 'dark' ? styles.darkText : styles.lightText]}>
-          Theme
+          Dark Mode
         </Text>
-        <Pressable
-          style={[styles.themeButton, theme === 'dark' ? styles.darkButton : styles.lightButton]}
-          onPress={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-          <Text style={styles.themeButtonText}>
-            {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
-          </Text>
-        </Pressable>
+        <Switch 
+          value={theme === 'dark'} 
+          onValueChange={handleThemeChange} 
+        />
       </View>
     </View>
   );
@@ -111,20 +131,5 @@ const styles = StyleSheet.create({
   slider: {
     flex: 2,
     marginLeft: 10,
-  },
-  themeButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  darkButton: {
-    backgroundColor: '#FFFFFF',
-  },
-  lightButton: {
-    backgroundColor: '#000000',
-  },
-  themeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
   },
 });
